@@ -262,7 +262,7 @@ export class WalletService {
     }
   }
 
-  async getDepositAddress(userId: string, network: string): Promise<ApiResponse<string>> {
+  async getDepositAddress(_userId: string, network: string): Promise<ApiResponse<string>> {
     // Demo implementation - in real app, generate or retrieve from custody provider
     const mockAddresses: Record<string, string> = {
       'Ethereum': '0x742d35Cc6d4C0532C6fE7a2b5c2F127c9e58Bb2F',

@@ -188,7 +188,7 @@ export class FundService {
     };
   }
 
-  async getFundPerformance(fundId: string, period: string): Promise<ApiResponse<FundPerformanceData[]>> {
+  async getFundPerformance(_fundId: string, period: string): Promise<ApiResponse<FundPerformanceData[]>> {
     // Demo implementation - replace with real performance data
     const mockData = [];
     const now = new Date();

@@ -48,37 +48,6 @@ export enum UserRole {
   ANALYST = 'analyst'
 }
 
-export interface Track {
-  id: string;
-  title: string;
-  artist: string;
-  duration: number;
-  url: string;
-  coverUrl?: string;
-  genre?: string;
-}
-
-export interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  tracks: Track[];
-  owner: User;
-  isPublic: boolean;
-  createdAt: Date;
-}
-
-export interface JamSession {
-  id: string;
-  name: string;
-  host: User;
-  participants: User[];
-  currentTrack?: Track;
-  playlist: Playlist;
-  isActive: boolean;
-  createdAt: Date;
-}
-
 export interface Wallet {
   id: string;
   userId: string;
