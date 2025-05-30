@@ -29,7 +29,7 @@ export default function DepositPage() {
     if (!selectedNetwork) return;
     // Here you would handle the deposit logic
     console.log('Proceeding with deposit on', selectedNetwork);
-    navigate('/wallet'); // Navigate back to wallet or show deposit address
+    navigate('/app/wallet'); // Navigate back to wallet or show deposit address
   };
 
   const handleCancel = () => {

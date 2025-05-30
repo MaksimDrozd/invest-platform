@@ -267,4 +267,36 @@ export interface WithdrawalForm {
   address: string;
   amount: number;
   network: string;
+}
+
+export interface UserFundBalance {
+  fundId: string;
+  fundName: string;
+  availableForWithdrawal: number;
+  currency: string;
+}
+
+export interface WithdrawalAddress {
+  id: string;
+  label: string;
+  address: string;
+  network: string;
+}
+
+export interface WalletNetwork {
+  id: string;
+  name: string;
+  balance: number;
+  currency: string;
+  fees: string;
+  processingTime: string;
+}
+
+export interface TransactionDetails {
+  txHash?: string;
+  amount: number;
+  currency: string;
+  network: string;
+  address: string;
+  isInstantWithdrawal?: boolean;
 } 

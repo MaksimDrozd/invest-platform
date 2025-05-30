@@ -12,8 +12,11 @@ import {
 import { container } from '../di/container';
 import { TYPES } from '../di/types';
 import { FundService } from '../services/FundService';
-import type { Fund } from '../types';
+import type { Fund, WalletNetwork } from '../types';
 import { RiskLevel } from '../types';
+import InvestmentSelectionModal from './InvestmentSelectionModal';
+import InvestmentConfirmationModal from './InvestmentConfirmationModal';
+import InvestmentSuccessModal from './InvestmentSuccessModal';
 
 export default function FundDiscovery() {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -22,6 +25,16 @@ export default function FundDiscovery() {
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<RiskLevel | ''>('');
   const [sortBy, setSortBy] = useState<'name' | 'roi' | 'aum'>('roi');
   const [loading, setLoading] = useState(true);
+
+  // Investment modal states
+  const [isInvestmentSelectionModalOpen, setIsInvestmentSelectionModalOpen] = useState(false);
+  const [isInvestmentConfirmationModalOpen, setIsInvestmentConfirmationModalOpen] = useState(false);
+  const [isInvestmentSuccessModalOpen, setIsInvestmentSuccessModalOpen] = useState(false);
+  const [investmentData, setInvestmentData] = useState<{
+    selectedFund: Fund;
+    amount: number;
+    selectedNetwork: WalletNetwork;
+  } | null>(null);
 
   const fundService = container.get<FundService>(TYPES.FundService);
 
@@ -104,6 +117,52 @@ export default function FundDiscovery() {
       default:
         return <Shield className="w-4 h-4" />;
     }
+  };
+
+  // Investment handlers
+  const handleInvestClick = () => {
+    setIsInvestmentSelectionModalOpen(true);
+  };
+
+  const handleInvestmentSelectionProceed = (data: {
+    selectedFund: Fund;
+    amount: number;
+    selectedNetwork: WalletNetwork;
+  }) => {
+    setInvestmentData(data);
+    setIsInvestmentSelectionModalOpen(false);
+    setIsInvestmentConfirmationModalOpen(true);
+  };
+
+  const handleInvestmentConfirmationProceed = async () => {
+    if (investmentData) {
+      try {
+        // Here you would call the actual investment service
+        await fundService.investInFund('current-user-id', {
+          fundId: investmentData.selectedFund.id,
+          amount: investmentData.amount,
+          network: investmentData.selectedNetwork.name
+        });
+        
+        setIsInvestmentConfirmationModalOpen(false);
+        setIsInvestmentSuccessModalOpen(true);
+      } catch (error) {
+        console.error('Investment failed:', error);
+        // Handle error appropriately
+      }
+    }
+  };
+
+  const handleInvestmentConfirmationBack = () => {
+    setIsInvestmentConfirmationModalOpen(false);
+    setIsInvestmentSelectionModalOpen(true);
+  };
+
+  const handleCloseAllInvestmentModals = () => {
+    setIsInvestmentSelectionModalOpen(false);
+    setIsInvestmentConfirmationModalOpen(false);
+    setIsInvestmentSuccessModalOpen(false);
+    setInvestmentData(null);
   };
 
   if (loading) {
@@ -250,7 +309,10 @@ export default function FundDiscovery() {
 
               {/* Actions */}
               <div className="p-6 pt-0 flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                  onClick={handleInvestClick}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
                   <DollarSign className="w-4 h-4" />
                   Invest
                 </button>
@@ -281,6 +343,33 @@ export default function FundDiscovery() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Investment Modals */}
+      <InvestmentSelectionModal
+        isOpen={isInvestmentSelectionModalOpen}
+        onClose={handleCloseAllInvestmentModals}
+        onProceed={handleInvestmentSelectionProceed}
+      />
+
+      {investmentData && (
+        <InvestmentConfirmationModal
+          isOpen={isInvestmentConfirmationModalOpen}
+          onProceed={handleInvestmentConfirmationProceed}
+          onBack={handleInvestmentConfirmationBack}
+          investmentData={investmentData}
+        />
+      )}
+
+      {investmentData && (
+        <InvestmentSuccessModal
+          isOpen={isInvestmentSuccessModalOpen}
+          onClose={handleCloseAllInvestmentModals}
+          investmentDetails={{
+            amount: investmentData.amount,
+            fundName: investmentData.selectedFund.name
+          }}
+        />
       )}
     </div>
   );

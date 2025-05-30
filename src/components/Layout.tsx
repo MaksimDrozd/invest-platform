@@ -15,27 +15,24 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import type { User } from '../types';
 
 interface LayoutProps {
   children: React.ReactNode;
-  user: User;
-  onLogout: () => void;
 }
 
-export default function Layout({ children, user: _user, onLogout: _onLogout }: LayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Portfolio', href: '/portfolio', icon: PieChart },
-    { name: 'Market', href: '/market', icon: TrendingUp },
-    { name: 'Watchlist', href: '/watchlist', icon: Eye },
-    { name: 'Wallet', href: '/wallet', icon: Wallet },
-    { name: 'Transaction history', href: '/transactions', icon: History },
-    { name: 'News', href: '/news', icon: Newspaper },
+    { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
+    { name: 'Portfolio', href: '/app/portfolio', icon: PieChart },
+    { name: 'Market', href: '/app/market', icon: TrendingUp },
+    { name: 'Watchlist', href: '/app/watchlist', icon: Eye },
+    { name: 'Wallet', href: '/app/wallet', icon: Wallet },
+    { name: 'Transaction history', href: '/app/transactions', icon: History },
+    { name: 'News', href: '/app/news', icon: Newspaper },
   ];
 
   const isActivePath = (path: string) => {
@@ -172,7 +169,7 @@ export default function Layout({ children, user: _user, onLogout: _onLogout }: L
           <div className="flex items-center gap-4">
             {/* Add funds button */}
             <button 
-              onClick={() => navigate('/deposit')}
+              onClick={() => navigate('/app/deposit')}
               className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
