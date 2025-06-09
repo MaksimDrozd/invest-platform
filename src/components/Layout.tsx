@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -13,8 +13,14 @@ import {
   Bell,
   User as UserIcon,
   Menu,
-  X
+  X,
+  LogOut,
+  Settings,
+  ChevronDown
 } from 'lucide-react';
+import { container } from '../di/container';
+import { TYPES } from '../di/types';
+import { AuthService } from '../services/AuthService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,8 +28,28 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const authService = container.get<AuthService>(TYPES.AuthService);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await authService.logout();
+    navigate('/');
+  };
 
   const navigation = [
     { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard },
@@ -182,10 +208,50 @@ export default function Layout({ children }: LayoutProps) {
             </button>
             
             {/* User menu */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <UserIcon className="w-4 h-4 text-gray-600" />
-              </div>
+            <div className="relative" ref={userMenuRef}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 p-2 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-4 h-4 text-gray-600" />
+                </div>
+                <ChevronDown className={`w-4 h-4 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Dropdown menu */}
+              {userMenuOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">
+                      {authService.getCurrentUser()?.firstName} {authService.getCurrentUser()?.lastName}
+                    </p>
+                    <p className="text-xs text-gray-500">{authService.getCurrentUser()?.email}</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      // Navigate to settings when implemented
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Settings
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

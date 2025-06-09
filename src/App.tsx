@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
 import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
 import Portfolio from './components/Portfolio';
 import Market from './components/Market';
 import Watchlist from './components/Watchlist';
@@ -30,12 +31,21 @@ const LandingWrapper = () => {
 };
 
 // Wrapper component for handling login with navigation
-const LoginWrapper = ({ onLogin }: { onLogin: (email: string, password: string) => Promise<void> }) => {
+const LoginWrapper = ({ onLogin, authService }: { 
+  onLogin: (email: string, password: string) => Promise<void>;
+  authService: AuthService;
+}) => {
   const navigate = useNavigate();
   
   const handleLoginWithRedirect = async (email: string, password: string) => {
     await onLogin(email, password);
-    navigate('/app/dashboard');
+    // Check if user is admin and redirect accordingly
+    const currentUser = authService.getCurrentUser();
+    if (currentUser && authService.isAdmin()) {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/app/dashboard');
+    }
   };
 
   return <LoginPage onLogin={handleLoginWithRedirect} />;
@@ -58,6 +68,27 @@ const ProtectedRoute = ({
       {children}
     </Layout>
   );
+};
+
+// Admin-only Route Wrapper
+const AdminRoute = ({
+  user,
+  authService,
+  children
+}: {
+  user: User | null;
+  authService: AuthService;
+  children: React.ReactNode;
+}) => {
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!authService.isAdmin()) {
+    return <Navigate to="/app/dashboard" replace />;
+  }
+
+  return <div>{children}</div>;
 };
 
 function App() {
@@ -96,7 +127,14 @@ function App() {
       {/* Public routes */}
       <Route path="/" element={<LandingWrapper />} />
       <Route path="/landing" element={<LandingWrapper />} />
-      <Route path="/login" element={<LoginWrapper onLogin={handleLogin} />} />
+      <Route path="/login" element={<LoginWrapper onLogin={handleLogin} authService={authService} />} />
+      
+      {/* Admin routes */}
+      <Route path="/admin/dashboard" element={
+        <AdminRoute user={user} authService={authService}>
+          <AdminDashboard />
+        </AdminRoute>
+      } />
       
       {/* Protected routes */}
       <Route path="/app/dashboard" element={
@@ -150,8 +188,12 @@ function App() {
         </ProtectedRoute>
       } />
       
-      {/* Redirect /app to /app/dashboard */}
-      <Route path="/app" element={<Navigate to="/app/dashboard" replace />} />
+      {/* Redirect /app to appropriate dashboard based on user role */}
+      <Route path="/app" element={
+        user && authService.isAdmin() ? 
+          <Navigate to="/admin/dashboard" replace /> : 
+          <Navigate to="/app/dashboard" replace />
+      } />
       
       {/* Catch all other routes */}
       <Route path="*" element={<Navigate to="/" replace />} />
